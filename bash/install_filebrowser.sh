@@ -70,10 +70,23 @@ if [ -d "$TARGET_DIR" ]; then
     rm -rf "$TARGET_DIR"
 fi
 mkdir -p "$TARGET_DIR"
-LATEST_RELEASE=$(curl -sL https://api.github.com/repos/filebrowser/filebrowser/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+
 FILE_NAME="linux-amd64-filebrowser.tar.gz"
-FILEBROWSER_URL="https://github.com/filebrowser/filebrowser/releases/download/$LATEST_RELEASE/$FILE_NAME"
-curl -L "$FILEBROWSER_URL" -o "$TARGET_DIR/$FILE_NAME"
+FILEBROWSER_URL="https://github.com/filebrowser/filebrowser/releases/latest/download/$FILE_NAME"
+
+green "正在下载 FileBrowser..."
+green "下载地址: $FILEBROWSER_URL"
+
+if ! curl -fL --retry 3 --connect-timeout 10 \
+    "$FILEBROWSER_URL" \
+    -o "$TARGET_DIR/$FILE_NAME"; then
+
+    red "FileBrowser 下载失败！"
+    red "请检查 GitHub 网络连接。"
+    rm -f "$TARGET_DIR/$FILE_NAME"
+    exit 1
+fi
+
 if [ ! -f "$TARGET_DIR/$FILE_NAME" ]; then
     red "下载失败，请检查网络连接或 GitHub 资源是否可用！"
     exit 0
